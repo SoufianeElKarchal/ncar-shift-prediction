@@ -546,11 +546,11 @@ with tabs[4]:
                   else 'Stock ≥ 1089 → -1 possible' if r['Correction']==-1
                   else 'Pas de correction', axis=1)
 
-    st.dataframe(df_aff.style.applymap(
+    st.dataframe(df_aff.style.map(
         lambda v: 'color:#C0392B;font-weight:600' if v=='⚠️ Écart'
                   else 'color:#1B5E20;font-weight:600' if v=='✅ Correct' else '',
         subset=['Statut ML']), use_container_width=True, hide_index=True)
-
+    
     exact = (df_hist['shifts_opt']==df_hist['shifts_predits']).sum()
     c1,c2,c3 = st.columns(3)
     c1.metric("Prédictions exactes", f"{exact}/18 ({int(exact/18*100)}%)")
