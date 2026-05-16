@@ -1,8 +1,6 @@
 """
 =============================================================
   INTERFACE STREAMLIT — PRÉDICTION SHIFTS NCAR
-  PFE : Optimisation du pilotage et de l'équilibrage NCAR
-
   Lancement : streamlit run ncar_app.py
 =============================================================
 """
@@ -29,6 +27,248 @@ from ncar_model import (
 # ─────────────────────────────────────────────
 st.set_page_config(page_title="NCAR — Shifts", page_icon="🏭", layout="wide")
 
+# ─────────────────────────────────────────────
+# GESTION DE L'AUTHENTIFICATION (LOGIN + ANIMATION)
+# ─────────────────────────────────────────────
+if "autentifie" not in st.session_state:
+    st.session_state["autentifie"] = False
+
+def verifier_identifiants(username, password):
+    USER_VALIDE = "admin"
+    MDP_VALIDE = "yazaki2026"
+    return username == USER_VALIDE and password == MDP_VALIDE
+
+# Écran de connexion si l'utilisateur n'est pas connecté
+if not st.session_state["autentifie"]:
+    # Injection du style CSS et des animations de ton fichier HTML
+    st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
+    /* Conteneur Streamlit global pour le login */
+    div[data-testid="stAppViewBlockContainer"] {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    .stApp {
+        background: #030814 !important;
+        overflow: hidden;
+    }
+
+    /* Arrière-plan animé avec étoiles/particules */
+    .bg-animation {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: radial-gradient(circle at center, #0a1931 0%, #030814 100%);
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .stars {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: transparent;
+        background-image: 
+            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+        background-size: 550px 550px, 350px 350px, 250px 250px;
+        background-position: 0 0, 40px 60px, 130px 270px;
+        animation: abg 100s linear infinite;
+        opacity: 0.6;
+    }
+
+    @keyframes abg {
+        from { background-position: 0 0, 40px 60px, 130px 270px; }
+        to { background-position: 550px 1100px, 440px 760px, 630px 1270px; }
+    }
+
+    /* Nébuleuses lumineuses en arrière-plan */
+    .glowing-orbs {
+        position: absolute;
+        width: 100%; height: 100%;
+        top: 0; left: 0;
+    }
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.15;
+        animation: floatOrb 20s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 400px; height: 400px; background: #00bcd4; top: -100px; left: -100px; }
+    .orb-2 { width: 500px; height: 500px; background: #3f51b5; bottom: -150px; right: -150px; animation-delay: -5s; }
+    .orb-3 { width: 300px; height: 300px; background: #009688; top: 50%; left: 70%; animation-delay: -10s; }
+
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(50px, 40px) scale(1.1); }
+    }
+
+    /* Conteneur de la carte de connexion centrale */
+    .login-wrapper {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 85vh;
+        padding: 20px;
+    }
+
+    /* Design Glassmorphism Cyberpunk */
+    .login-card {
+        background: rgba(6, 15, 34, 0.75);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(0, 188, 212, 0.2);
+        padding: 45px 40px;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 
+                    0 0 40px rgba(0, 188, 212, 0.1);
+        text-align: center;
+        animation: fadeInCard 1s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%; width: 100%; height: 3px;
+        background: linear-gradient(90deg, transparent, #00bcd4, transparent);
+        animation: scanline 4s linear infinite;
+    }
+
+    @keyframes scanline {
+        0% { left: -100%; }
+        50%, 100% { left: 100%; }
+    }
+
+    @keyframes fadeInCard {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Marquage de la marque */
+    .brand-logo {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 4px;
+        margin-bottom: 5px;
+        text-shadow: 0 0 10px rgba(0, 188, 212, 0.6);
+    }
+    .brand-logo span { color: #00bcd4; }
+
+    .app-title {
+        font-family: 'Poppins', sans-serif;
+        color: #8da2be;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 35px;
+        font-weight: 400;
+    }
+
+    /* Repositionnement et transparence des inputs natifs Streamlit dans la carte */
+    .login-card div[data-testid="stForm"] {
+        border: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    .login-card label {
+        color: #00bcd4 !important;
+        font-family: 'Orbitron', sans-serif !important;
+        font-size: 11px !important;
+        letter-spacing: 1px;
+        text-align: left;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .login-card input {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(0, 188, 212, 0.2) !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        font-family: 'Poppins', sans-serif !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .login-card input:focus {
+        border-color: #00bcd4 !important;
+        box-shadow: 0 0 15px rgba(0, 188, 212, 0.3) !important;
+        background: rgba(6, 15, 34, 0.9) !important;
+    }
+
+    /* Bouton lumineux personnalisé */
+    .login-card button[data-testid="stFormSubmitButton"] {
+        background: linear-gradient(135deg, #00bcd4 0%, #3f51b5 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 14px !important;
+        border-radius: 12px !important;
+        font-family: 'Orbitron', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        letter-spacing: 2px !important;
+        width: 100% !important;
+        margin-top: 20px !important;
+        cursor: pointer !important;
+        box-shadow: 0 5px 20px rgba(0, 188, 212, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .login-card button[data-testid="stFormSubmitButton"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 188, 212, 0.6) !important;
+        filter: brightness(1.1);
+    }
+    </style>
+
+    <div class="bg-animation">
+        <div class="stars"></div>
+        <div class="glowing-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Affichage de la carte centrale
+    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    st.markdown('<div class="brand-logo">YAZAKI<span>.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="app-title">Predictive Shift System — NCAR</div>', unsafe_allow_html=True)
+    
+    with st.form("cyber_login_form"):
+        username_input = st.text_input("SYSTEM USERNAME", placeholder="Entrez votre identifiant...")
+        password_input = st.text_input("ACCESS PASSWORD", type="password", placeholder="Entrez votre mot de passe...")
+        bouton_connexion = st.form_submit_button("INITIALIZE SYSTEM")
+        
+        if bouton_connexion:
+            if verifier_identifiants(username_input, password_input):
+                st.session_state["autentifie"] = True
+                st.success("Accès système autorisé. Initialisation...")
+                st.rerun()
+            else:
+                st.error("Identifiants invalides. Système verrouillé.")
+                
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.stop()
+
+# ─────────────────────────────────────────────
+# STYLE GLOBAL DE L'APPLICATION (APRES LOGIN)
+# ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -38,7 +278,7 @@ html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
 }
 .stApp {
-    background-color: #EFF6FA;
+    background-color: #EFF6FA !important;
 }
 section[data-testid="stSidebar"] {
     background: #ffffff;
@@ -288,6 +528,12 @@ with st.sidebar:
     label = "Insuffisant" if stock_in < STOCK_SEC else "Suffisant"
     st.markdown(f'<span class="{badge}">Stock {stock_in}u — {label}</span>', unsafe_allow_html=True)
     st.markdown(f"**Modèle :** {nom_modele}")
+    
+    # Bouton de déconnexion en bas de la sidebar
+    st.markdown("---")
+    if st.button("🚪 Se déconnecter"):
+        st.session_state["autentifie"] = False
+        st.rerun()
 
 # ─────────────────────────────────────────────
 # PRÉDICTION
@@ -331,9 +577,9 @@ with tabs[0]:
             if s == 0:
                 st.markdown(f'<div class="shift-repos"><b>{jour}</b><br><small>Repos</small><br><small>—</small><br><b>0h</b></div>', unsafe_allow_html=True)
             elif s == 1:
-                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>07h – 15h</small><br><b>8h</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>06h – 14h</small><br><b>8h</b></div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>07h – 15h</small></div><div class="shift-apm"><small style="color:#1D9E75">Shift Après-midi</small><br><small>15h – 23h</small><br><b>8h total</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>06h – 14h</small></div><div class="shift-apm"><small style="color:#1D9E75">Shift Après-midi</small><br><small>14h – 22h</small><br><b>16h total</b></div>', unsafe_allow_html=True)
 
     st.markdown('<p class="section-title">Résumé équipes</p>', unsafe_allow_html=True)
     r1,r2,r3 = st.columns(3)
@@ -550,7 +796,7 @@ with tabs[4]:
         lambda v: 'color:#C0392B;font-weight:600' if v=='⚠️ Écart'
                   else 'color:#1B5E20;font-weight:600' if v=='✅ Correct' else '',
         subset=['Statut ML']), use_container_width=True, hide_index=True)
-    
+
     exact = (df_hist['shifts_opt']==df_hist['shifts_predits']).sum()
     c1,c2,c3 = st.columns(3)
     c1.metric("Prédictions exactes", f"{exact}/18 ({int(exact/18*100)}%)")
@@ -1041,7 +1287,7 @@ with tabs[7]:
                 <div class="header-left">
                     <div class="info-box"><span class="info-label">PLANT</span><br><span class="info-val">YMM2</span></div>
                 </div>
-                <header class="header-center">
+                <div class="header-center">
                     <h1>Manufacturing Concept Template</h1>
                     <div class="grid-info">
                         <div class="info-box"><span class="info-label">Project</span><br><span class="info-val">BMW NCAR</span></div>
@@ -1049,7 +1295,7 @@ with tabs[7]:
                         <div class="info-box"><span class="info-label">Phase</span><br><span class="info-val">VS1</span></div>
                         <div class="info-box"><span class="info-label">HECKEND</span><br><span class="info-val">-</span></div>
                     </div>
-                </header>
+                </div>
                 <div class="header-right">
                     <div style="font-size: 0.7rem; margin-bottom:5px;">
                         <strong>Signature:</strong> Souha . Amslek <br>
@@ -1332,7 +1578,6 @@ with tabs[8]:
         ax4.set_title(f'Importance — {nom_modele}', fontweight='bold')
         ax4.legend(handles=[mpatches.Patch(color='#D94030',label='Capacité/stock/ratio'),
                               mpatches.Patch(color='#2B7FA8',label='Demande')], fontsize=9)
-        ax.set_facecolor('#F3F8FB')
         plt.tight_layout(); st.pyplot(fig4)
 
     st.markdown('<p class="section-title">Paramètres du modèle</p>', unsafe_allow_html=True)
