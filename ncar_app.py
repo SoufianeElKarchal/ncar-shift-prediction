@@ -1,6 +1,8 @@
 """
 =============================================================
   INTERFACE STREAMLIT — PRÉDICTION SHIFTS NCAR
+  PFE : Optimisation du pilotage et de l'équilibrage NCAR
+
   Lancement : streamlit run ncar_app.py
 =============================================================
 """
@@ -27,73 +29,6 @@ from ncar_model import (
 # ─────────────────────────────────────────────
 st.set_page_config(page_title="NCAR — Shifts", page_icon="🏭", layout="wide")
 
-# ─────────────────────────────────────────────
-# GESTION DE L'AUTHENTIFICATION (LOGIN)
-# ─────────────────────────────────────────────
-# Initialisation des variables de session pour la connexion
-if "autentifie" not in st.session_state:
-    st.session_state["autentifie"] = False
-
-def verifier_identifiants(username, password):
-    # --- MODIFIE TES IDENTIFIANTS ICI ---
-    USER_VALIDE = "admin"
-    MDP_VALIDE = "yazaki2026"
-    return username == USER_VALIDE and password == MDP_VALIDE
-
-# Écran de connexion si l'utilisateur n'est pas connecté
-if not st.session_state["autentifie"]:
-    st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
-    html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-    .stApp { background-color: #EFF6FA; }
-    .login-container {
-        background: #ffffff;
-        padding: 40px;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(43, 127, 168, 0.15);
-        border: 1px solid rgba(74, 155, 191, 0.2);
-        max-width: 450px;
-        margin: 100px auto 0 auto;
-        text-align: center;
-    }
-    .login-header {
-        color: #1B6690;
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-    .login-sub {
-        color: #7FA8BE;
-        font-size: 14px;
-        margin-bottom: 30px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
-    st.markdown('<div class="login-header">🔒 Connexion — Ligne NCAR</div>', unsafe_allow_html=True)
-    st.markdown('<div class="login-sub">Veuillez renseigner vos accès YAZAKI pour accéder au pilotage</div>', unsafe_allow_html=True)
-    
-    with st.form("formulaire_connexion"):
-        username_input = st.text_input("Identifiant", placeholder="Ex: admin")
-        password_input = st.text_input("Mot de passe", type="password", placeholder="••••••••")
-        bouton_connexion = st.form_submit_button("Se connecter")
-        
-        if bouton_connexion:
-            if verifier_identifiants(username_input, password_input):
-                st.session_state["autentifie"] = True
-                st.success("Connexion réussie ! Chargement...")
-                st.rerun()
-            else:
-                st.error("Identifiant ou mot de passe incorrect.")
-                
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.stop()  # Arrête l'exécution du reste du script tant qu'on n'est pas logué
-
-# ─────────────────────────────────────────────
-# STYLE GLOBAL DE L'APPLICATION (APRES LOGIN)
-# ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -353,12 +288,6 @@ with st.sidebar:
     label = "Insuffisant" if stock_in < STOCK_SEC else "Suffisant"
     st.markdown(f'<span class="{badge}">Stock {stock_in}u — {label}</span>', unsafe_allow_html=True)
     st.markdown(f"**Modèle :** {nom_modele}")
-    
-    # Bouton de déconnexion en bas de la sidebar
-    st.markdown("---")
-    if st.button("🚪 Se déconnecter"):
-        st.session_state["autentifie"] = False
-        st.rerun()
 
 # ─────────────────────────────────────────────
 # PRÉDICTION
@@ -402,9 +331,9 @@ with tabs[0]:
             if s == 0:
                 st.markdown(f'<div class="shift-repos"><b>{jour}</b><br><small>Repos</small><br><small>—</small><br><b>0h</b></div>', unsafe_allow_html=True)
             elif s == 1:
-                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>06h – 14h</small><br><b>8h</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>07h – 15h</small><br><b>8h</b></div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>06h – 14h</small></div><div class="shift-apm"><small style="color:#1D9E75">Shift Après-midi</small><br><small>14h – 22h</small><br><b>16h total</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>07h – 15h</small></div><div class="shift-apm"><small style="color:#1D9E75">Shift Après-midi</small><br><small>15h – 23h</small><br><b>8h total</b></div>', unsafe_allow_html=True)
 
     st.markdown('<p class="section-title">Résumé équipes</p>', unsafe_allow_html=True)
     r1,r2,r3 = st.columns(3)
@@ -621,7 +550,7 @@ with tabs[4]:
         lambda v: 'color:#C0392B;font-weight:600' if v=='⚠️ Écart'
                   else 'color:#1B5E20;font-weight:600' if v=='✅ Correct' else '',
         subset=['Statut ML']), use_container_width=True, hide_index=True)
-
+    
     exact = (df_hist['shifts_opt']==df_hist['shifts_predits']).sum()
     c1,c2,c3 = st.columns(3)
     c1.metric("Prédictions exactes", f"{exact}/18 ({int(exact/18*100)}%)")
@@ -1112,7 +1041,7 @@ with tabs[7]:
                 <div class="header-left">
                     <div class="info-box"><span class="info-label">PLANT</span><br><span class="info-val">YMM2</span></div>
                 </div>
-                <div class="header-center">
+                <header class="header-center">
                     <h1>Manufacturing Concept Template</h1>
                     <div class="grid-info">
                         <div class="info-box"><span class="info-label">Project</span><br><span class="info-val">BMW NCAR</span></div>
@@ -1120,7 +1049,7 @@ with tabs[7]:
                         <div class="info-box"><span class="info-label">Phase</span><br><span class="info-val">VS1</span></div>
                         <div class="info-box"><span class="info-label">HECKEND</span><br><span class="info-val">-</span></div>
                     </div>
-                </div>
+                </header>
                 <div class="header-right">
                     <div style="font-size: 0.7rem; margin-bottom:5px;">
                         <strong>Signature:</strong> Souha . Amslek <br>
@@ -1403,6 +1332,7 @@ with tabs[8]:
         ax4.set_title(f'Importance — {nom_modele}', fontweight='bold')
         ax4.legend(handles=[mpatches.Patch(color='#D94030',label='Capacité/stock/ratio'),
                               mpatches.Patch(color='#2B7FA8',label='Demande')], fontsize=9)
+        ax.set_facecolor('#F3F8FB')
         plt.tight_layout(); st.pyplot(fig4)
 
     st.markdown('<p class="section-title">Paramètres du modèle</p>', unsafe_allow_html=True)
