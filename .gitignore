@@ -1,0 +1,17 @@
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Streamlit et environnement
+.streamlit/
+.venv/
+venv/
+env/
+
+# Fichiers de données locaux générés par l'application
+ncar_suivi.json
+ncar_suivi_wip.json
+*.png
+*.xlsx
