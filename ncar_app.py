@@ -331,9 +331,9 @@ with tabs[0]:
             if s == 0:
                 st.markdown(f'<div class="shift-repos"><b>{jour}</b><br><small>Repos</small><br><small>—</small><br><b>0h</b></div>', unsafe_allow_html=True)
             elif s == 1:
-                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>06h – 14h</small><br><b>8h</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>07h – 15h</small><br><b>8h</b></div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>06h – 14h</small></div><div class="shift-apm"><small style="color:#1D9E75">Shift Après-midi</small><br><small>14h – 22h</small><br><b>16h total</b></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="shift-matin"><b>{jour}</b><br><small style="color:#185FA5">Shift Matin</small><br><small>07h – 15h</small></div><div class="shift-apm"><small style="color:#1D9E75">Shift Après-midi</small><br><small>15h – 23h</small><br><b>8h total</b></div>', unsafe_allow_html=True)
 
     st.markdown('<p class="section-title">Résumé équipes</p>', unsafe_allow_html=True)
     r1,r2,r3 = st.columns(3)
