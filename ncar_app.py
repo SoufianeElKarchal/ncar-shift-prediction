@@ -219,6 +219,29 @@ button[aria-selected="true"][data-baseweb="tab"] {
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
+# AUTHENTIFICATION
+# ─────────────────────────────────────────────
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
+
+if not st.session_state['authenticated']:
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+    with col2:
+        st.markdown("<h2 style='text-align: center; color: #1B6690; font-family: \"Cormorant Garamond\", serif; margin-top: 50px;'>🔒 NCAR Portal</h2>", unsafe_allow_html=True)
+        with st.form("login_form"):
+            username = st.text_input("Identifiant")
+            password = st.text_input("Mot de passe", type="password")
+            submit = st.form_submit_button("Se connecter", use_container_width=True)
+            
+            if submit:
+                if username == "admin" and password == "password123":
+                    st.session_state['authenticated'] = True
+                    st.rerun()
+                else:
+                    st.error("Identifiant ou mot de passe incorrect.")
+    st.stop()
+
+# ─────────────────────────────────────────────
 # FICHIER SUIVI JOURNALIER (persistance JSON)
 # ─────────────────────────────────────────────
 SUIVI_FILE = os.path.join(os.path.dirname(__file__), 'ncar_suivi.json')
