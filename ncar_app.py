@@ -28,7 +28,7 @@ from ncar_model import (
 st.set_page_config(page_title="NCAR — Shifts", page_icon="🏭", layout="wide")
 
 # ─────────────────────────────────────────────
-# GESTION DE L'AUTHENTIFICATION (LOGIN + ANIMATION)
+# GESTION DE L'AUTHENTIFICATION (LOGIN COPIE VISUELLE)
 # ─────────────────────────────────────────────
 if "autentifie" not in st.session_state:
     st.session_state["autentifie"] = False
@@ -40,228 +40,152 @@ def verifier_identifiants(username, password):
 
 # Écran de connexion si l'utilisateur n'est pas connecté
 if not st.session_state["autentifie"]:
-    # Injection du style CSS et des animations de ton fichier HTML
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-    /* Conteneur Streamlit global pour le login */
+    /* Masquer les barres et menus par défaut de Streamlit */
+    [data-testid="stHeader"], [data-testid="stSidebar"], footer {
+        display: none !important;
+    }
+    
     div[data-testid="stAppViewBlockContainer"] {
         padding: 0 !important;
         max-width: 100% !important;
     }
     
+    /* Fond bleu nuit/sombre épuré */
     .stApp {
-        background: #030814 !important;
-        overflow: hidden;
+        background-color: #0b132b !important;
+        font-family: 'Poppins', sans-serif !important;
     }
 
-    /* Arrière-plan animé avec étoiles/particules */
-    .bg-animation {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background: radial-gradient(circle at center, #0a1931 0%, #030814 100%);
-        z-index: 0;
-        overflow: hidden;
-    }
-
-    .stars {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: transparent;
-        background-image: 
-            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
-        background-size: 550px 550px, 350px 350px, 250px 250px;
-        background-position: 0 0, 40px 60px, 130px 270px;
-        animation: abg 100s linear infinite;
-        opacity: 0.6;
-    }
-
-    @keyframes abg {
-        from { background-position: 0 0, 40px 60px, 130px 270px; }
-        to { background-position: 550px 1100px, 440px 760px, 630px 1270px; }
-    }
-
-    /* Nébuleuses lumineuses en arrière-plan */
-    .glowing-orbs {
-        position: absolute;
-        width: 100%; height: 100%;
-        top: 0; left: 0;
-    }
-    .orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
-        opacity: 0.15;
-        animation: floatOrb 20s ease-in-out infinite alternate;
-    }
-    .orb-1 { width: 400px; height: 400px; background: #00bcd4; top: -100px; left: -100px; }
-    .orb-2 { width: 500px; height: 500px; background: #3f51b5; bottom: -150px; right: -150px; animation-delay: -5s; }
-    .orb-3 { width: 300px; height: 300px; background: #009688; top: 50%; left: 70%; animation-delay: -10s; }
-
-    @keyframes floatOrb {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(50px, 40px) scale(1.1); }
-    }
-
-    /* Conteneur de la carte de connexion centrale */
+    /* Structure de centrage */
     .login-wrapper {
-        position: relative;
-        z-index: 10;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 85vh;
-        padding: 20px;
+        min-height: 100vh;
+        width: 100vw;
+        background-color: #0b132b;
     }
 
-    /* Design Glassmorphism Cyberpunk */
+    /* Carte de connexion (Exactement comme sur la photo) */
     .login-card {
-        background: rgba(6, 15, 34, 0.75);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(0, 188, 212, 0.2);
+        background-color: #ffffff;
         padding: 45px 40px;
-        border-radius: 24px;
+        border-radius: 20px;
         width: 100%;
-        max-width: 440px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 
-                    0 0 40px rgba(0, 188, 212, 0.1);
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
         text-align: center;
-        animation: fadeInCard 1s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        overflow: hidden;
+        box-sizing: border-box;
     }
 
-    .login-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: -100%; width: 100%; height: 3px;
-        background: linear-gradient(90deg, transparent, #00bcd4, transparent);
-        animation: scanline 4s linear infinite;
-    }
-
-    @keyframes scanline {
-        0% { left: -100%; }
-        50%, 100% { left: 100%; }
-    }
-
-    @keyframes fadeInCard {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Marquage de la marque */
-    .brand-logo {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 36px;
-        font-weight: 700;
-        color: #ffffff;
-        letter-spacing: 4px;
+    /* Titres */
+    .brand-title {
+        font-size: 26px;
+        font-weight: 600;
+        color: #0b132b;
         margin-bottom: 5px;
-        text-shadow: 0 0 10px rgba(0, 188, 212, 0.6);
     }
-    .brand-logo span { color: #00bcd4; }
-
-    .app-title {
-        font-family: 'Poppins', sans-serif;
-        color: #8da2be;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
+    
+    .brand-subtitle {
+        font-size: 14px;
+        color: #6c757d;
         margin-bottom: 35px;
-        font-weight: 400;
     }
 
-    /* Repositionnement et transparence des inputs natifs Streamlit dans la carte */
-    .login-card div[data-testid="stForm"] {
+    /* Hack pour nettoyer les bordures de formulaires Streamlit */
+    div[data-testid="stForm"] {
         border: none !important;
         padding: 0 !important;
         background: transparent !important;
     }
 
+    /* Style des labels d'input */
     .login-card label {
-        color: #00bcd4 !important;
-        font-family: 'Orbitron', sans-serif !important;
-        font-size: 11px !important;
-        letter-spacing: 1px;
-        text-align: left;
-        display: block;
-        margin-bottom: 5px;
+        color: #495057 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        text-align: left !important;
+        display: block !important;
+        margin-bottom: 8px !important;
     }
 
+    /* Style des champs de saisie (inputs) */
     .login-card input {
-        background: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(0, 188, 212, 0.2) !important;
-        color: #ffffff !important;
+        background-color: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+        color: #212529 !important;
         border-radius: 10px !important;
-        padding: 12px !important;
-        font-family: 'Poppins', sans-serif !important;
-        transition: all 0.3s ease !important;
+        padding: 12px 15px !important;
+        font-size: 14px !important;
+        transition: all 0.2s ease-in-out !important;
     }
 
     .login-card input:focus {
-        border-color: #00bcd4 !important;
-        box-shadow: 0 0 15px rgba(0, 188, 212, 0.3) !important;
-        background: rgba(6, 15, 34, 0.9) !important;
+        border-color: #4a90e2 !important;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2) !important;
+        background-color: #ffffff !important;
     }
 
-    /* Bouton lumineux personnalisé */
+    /* Bouton de connexion bleu plein */
     .login-card button[data-testid="stFormSubmitButton"] {
-        background: linear-gradient(135deg, #00bcd4 0%, #3f51b5 100%) !important;
+        background-color: #4a90e2 !important;
         color: #ffffff !important;
         border: none !important;
-        padding: 14px !important;
-        border-radius: 12px !important;
-        font-family: 'Orbitron', sans-serif !important;
-        font-size: 14px !important;
-        font-weight: 700 !important;
-        letter-spacing: 2px !important;
+        padding: 13px !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
         width: 100% !important;
-        margin-top: 20px !important;
+        margin-top: 25px !important;
         cursor: pointer !important;
-        box-shadow: 0 5px 20px rgba(0, 188, 212, 0.4) !important;
-        transition: all 0.3s ease !important;
+        transition: background-color 0.2s ease !important;
     }
 
     .login-card button[data-testid="stFormSubmitButton"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(0, 188, 212, 0.6) !important;
-        filter: brightness(1.1);
+        background-color: #357abd !important;
+    }
+
+    /* Pied de page du formulaire */
+    .login-footer {
+        margin-top: 25px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .login-footer a {
+        color: #4a90e2;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .login-footer a:hover {
+        text-decoration: underline;
     }
     </style>
-
-    <div class="bg-animation">
-        <div class="stars"></div>
-        <div class="glowing-orbs">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-            <div class="orb orb-3"></div>
-        </div>
-    </div>
     """, unsafe_allow_html=True)
 
-    # Affichage de la carte centrale
+    # Rendu HTML de la structure
     st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
-    st.markdown('<div class="brand-logo">YAZAKI<span>.</span></div>', unsafe_allow_html=True)
-    st.markdown('<div class="app-title">Predictive Shift System — NCAR</div>', unsafe_allow_html=True)
+    st.markdown('<div class="brand-title">Connexion</div>', unsafe_allow_html=True)
+    st.markdown('<div class="brand-subtitle">Predictive Shift System — NCAR</div>', unsafe_allow_html=True)
     
-    with st.form("cyber_login_form"):
-        username_input = st.text_input("SYSTEM USERNAME", placeholder="Entrez votre identifiant...")
-        password_input = st.text_input("ACCESS PASSWORD", type="password", placeholder="Entrez votre mot de passe...")
-        bouton_connexion = st.form_submit_button("INITIALIZE SYSTEM")
+    with st.form("clean_login_form"):
+        username_input = st.text_input("Identifiant", placeholder="Entrez votre identifiant...")
+        password_input = st.text_input("Mot de passe", type="password", placeholder="Entrez votre mot de passe...")
+        bouton_connexion = st.form_submit_button("Se connecter")
         
         if bouton_connexion:
             if verifier_identifiants(username_input, password_input):
                 st.session_state["autentifie"] = True
-                st.success("Accès système autorisé. Initialisation...")
                 st.rerun()
             else:
-                st.error("Identifiants invalides. Système verrouillé.")
+                st.error("Identifiant ou mot de passe incorrect.")
                 
+    st.markdown('<div class="login-footer">Besoin d\'aide ? <a href="#">Contacter le support</a></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
@@ -529,7 +453,6 @@ with st.sidebar:
     st.markdown(f'<span class="{badge}">Stock {stock_in}u — {label}</span>', unsafe_allow_html=True)
     st.markdown(f"**Modèle :** {nom_modele}")
     
-    # Bouton de déconnexion en bas de la sidebar
     st.markdown("---")
     if st.button("🚪 Se déconnecter"):
         st.session_state["autentifie"] = False
@@ -944,7 +867,7 @@ with tabs[7]:
     st.markdown('<p class="section-title">📦 WIP — Encours avant chaque poste</p>', unsafe_allow_html=True)
     st.info(f"Seuil d'alerte : **{SEUIL_WIP} pièces**. Au-dessus de ce seuil, le poste est signalé en rouge.")
 
-    # Schéma ligne NCAR inséré directement depuis votre code HTML
+    # Schéma ligne NCAR inséré directement depuis ton code HTML
     html_content = """
     <!DOCTYPE html>
     <html lang="fr">
@@ -1165,7 +1088,7 @@ with tabs[7]:
                 text-align: center;
             }
 
-            /* NOUVELLE LIGNE : Postes additionnels */
+            /* NOUVELLE LIGNE : Postes d'assemblage / pré-assemblage AJOUTÉS */
             .additional-row {
                 display: grid;
                 grid-template-columns: repeat(8, 1fr);
