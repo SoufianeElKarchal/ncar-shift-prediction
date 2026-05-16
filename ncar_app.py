@@ -28,7 +28,7 @@ from ncar_model import (
 st.set_page_config(page_title="NCAR — Shifts", page_icon="🏭", layout="wide")
 
 # ─────────────────────────────────────────────
-# GESTION DE L'AUTHENTIFICATION (LOGIN COPIE VISUELLE)
+# GESTION DE L'AUTHENTIFICATION (DESIGN ORIGINAL)
 # ─────────────────────────────────────────────
 if "autentifie" not in st.session_state:
     st.session_state["autentifie"] = False
@@ -42,9 +42,9 @@ def verifier_identifiants(username, password):
 if not st.session_state["autentifie"]:
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* Masquer les barres et menus par défaut de Streamlit */
+    /* Masquer les barres et menus natifs Streamlit */
     [data-testid="stHeader"], [data-testid="stSidebar"], footer {
         display: none !important;
     }
@@ -54,127 +54,180 @@ if not st.session_state["autentifie"]:
         max-width: 100% !important;
     }
     
-    /* Fond bleu nuit/sombre épuré */
+    /* Fond original bleu très pâle */
     .stApp {
-        background-color: #0b132b !important;
-        font-family: 'Poppins', sans-serif !important;
+        background-color: #EFF6FA !important;
+        font-family: 'DM Sans', sans-serif !important;
+        overflow: hidden;
     }
 
-    /* Structure de centrage */
-    .login-wrapper {
+    /* Arrière-plan avec les cercles dégradés */
+    .bg-shapes {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: 0;
+        pointer-events: none;
+    }
+    
+    .shape {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(40px);
+    }
+    
+    .shape-1 {
+        width: 450px; height: 450px;
+        background: radial-gradient(circle, rgba(74,155,191,0.2) 0%, rgba(239,246,250,0) 70%);
+        top: -150px; left: -100px;
+    }
+    
+    .shape-2 {
+        width: 550px; height: 550px;
+        background: radial-gradient(circle, rgba(43,127,168,0.15) 0%, rgba(239,246,250,0) 70%);
+        bottom: -200px; right: -100px;
+    }
+
+    /* Conteneur de centrage */
+    .login-container {
+        position: relative;
+        z-index: 10;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
         width: 100vw;
-        background-color: #0b132b;
     }
 
-    /* Carte de connexion (Exactement comme sur la photo) */
+    /* Carte de connexion Blanche Glassmorphism épurée */
     .login-card {
-        background-color: #ffffff;
-        padding: 45px 40px;
-        border-radius: 20px;
+        background: #ffffff;
+        padding: 50px 45px;
+        border-radius: 24px;
         width: 100%;
-        max-width: 400px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        max-width: 450px;
+        border: 1px solid #D9E8F0;
+        box-shadow: 0 15px 35px rgba(27, 102, 144, 0.08), 
+                    0 5px 15px rgba(27, 102, 144, 0.04);
         text-align: center;
         box-sizing: border-box;
     }
 
-    /* Titres */
-    .brand-title {
-        font-size: 26px;
-        font-weight: 600;
-        color: #0b132b;
-        margin-bottom: 5px;
+    /* Message de bienvenue et sous-titres */
+    .login-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a2e3b;
+        margin-bottom: 6px;
     }
     
-    .brand-subtitle {
-        font-size: 14px;
-        color: #6c757d;
-        margin-bottom: 35px;
+    .login-subtitle {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        color: #7FA8BE;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        margin-bottom: 40px;
     }
 
-    /* Hack pour nettoyer les bordures de formulaires Streamlit */
+    /* Nettoyage des bordures natives des formulaires Streamlit */
     div[data-testid="stForm"] {
         border: none !important;
         padding: 0 !important;
         background: transparent !important;
     }
 
-    /* Style des labels d'input */
+    /* Style des labels d'inputs */
     .login-card label {
-        color: #495057 !important;
+        color: #1a2e3b !important;
+        font-family: 'DM Sans', sans-serif !important;
         font-size: 13px !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
         text-align: left !important;
         display: block !important;
         margin-bottom: 8px !important;
+        letter-spacing: 0.02em;
     }
 
-    /* Style des champs de saisie (inputs) */
+    /* Style des champs de saisie (Inputs) */
     .login-card input {
-        background-color: #f8f9fa !important;
-        border: 1px solid #dee2e6 !important;
-        color: #212529 !important;
-        border-radius: 10px !important;
-        padding: 12px 15px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #D9E8F0 !important;
+        color: #1a2e3b !important;
+        border-radius: 12px !important;
+        padding: 14px 16px !important;
         font-size: 14px !important;
-        transition: all 0.2s ease-in-out !important;
+        font-family: 'DM Sans', sans-serif !important;
+        transition: all 0.25s ease !important;
     }
 
     .login-card input:focus {
-        border-color: #4a90e2 !important;
-        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2) !important;
+        border-color: #2B7FA8 !important;
+        box-shadow: 0 0 0 4px rgba(43, 127, 168, 0.12) !important;
         background-color: #ffffff !important;
     }
 
     /* Bouton de connexion bleu plein */
     .login-card button[data-testid="stFormSubmitButton"] {
-        background-color: #4a90e2 !important;
+        background: linear-gradient(135deg, #4A9BBF 0%, #2B7FA8 100%) !important;
         color: #ffffff !important;
         border: none !important;
-        padding: 13px !important;
-        border-radius: 10px !important;
+        padding: 15px !important;
+        border-radius: 12px !important;
+        font-family: 'DM Sans', sans-serif !important;
         font-size: 15px !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
         width: 100% !important;
         margin-top: 25px !important;
         cursor: pointer !important;
-        transition: background-color 0.2s ease !important;
+        box-shadow: 0 6px 20px rgba(43, 127, 168, 0.2) !important;
+        transition: all 0.25s ease !important;
     }
 
     .login-card button[data-testid="stFormSubmitButton"]:hover {
-        background-color: #357abd !important;
-    }
-
-    /* Pied de page du formulaire */
-    .login-footer {
-        margin-top: 25px;
-        font-size: 12px;
-        color: #6c757d;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 8px 25px rgba(43, 127, 168, 0.3) !important;
+        filter: brightness(1.05);
     }
     
-    .login-footer a {
-        color: #4a90e2;
-        text-decoration: none;
-        font-weight: 500;
+    .login-card button[data-testid="stFormSubmitButton"]:active {
+        transform: translateY(0) !important;
     }
-    .login-footer a:hover {
+
+    /* Footer discret de la carte */
+    .login-footer-text {
+        margin-top: 35px;
+        font-size: 12px;
+        color: #7FA8BE;
+        font-weight: 400;
+    }
+    
+    .login-footer-text a {
+        color: #2B7FA8;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .login-footer-text a:hover {
         text-decoration: underline;
     }
     </style>
+
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
     """, unsafe_allow_html=True)
 
-    # Rendu HTML de la structure
-    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+    # Rendu graphique de la carte centrale de connexion
+    st.markdown('<div class="login-container">', unsafe_allow_html=True)
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
-    st.markdown('<div class="brand-title">Connexion</div>', unsafe_allow_html=True)
-    st.markdown('<div class="brand-subtitle">Predictive Shift System — NCAR</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-title">Bienvenue</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-subtitle">NCAR SHIFT SYSTEM — YAZAKI</div>', unsafe_allow_html=True)
     
-    with st.form("clean_login_form"):
-        username_input = st.text_input("Identifiant", placeholder="Entrez votre identifiant...")
+    with st.form("yazaki_clean_login_form"):
+        username_input = st.text_input("Identifiant ou Email", placeholder="Entrez votre identifiant...")
         password_input = st.text_input("Mot de passe", type="password", placeholder="Entrez votre mot de passe...")
         bouton_connexion = st.form_submit_button("Se connecter")
         
@@ -185,7 +238,7 @@ if not st.session_state["autentifie"]:
             else:
                 st.error("Identifiant ou mot de passe incorrect.")
                 
-    st.markdown('<div class="login-footer">Besoin d\'aide ? <a href="#">Contacter le support</a></div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-footer-text">Portail de production sécurisé. <a href="#">Aide technique</a></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
@@ -584,9 +637,9 @@ with tabs[1]:
         fig.savefig('NCAR_graphiques.png', dpi=150, bbox_inches='tight')
         st.success("✅ Fichier 'NCAR_graphiques.png' sauvegardé !")
 
-# ══════════════════════════════════════════════
+# ─────────────────────────────────────────────
 # ONGLET 3 — SUIVI JOURNALIER
-# ══════════════════════════════════════════════
+# ─────────────────────────────────────────────
 with tabs[2]:
     st.markdown('<p class="section-title">Suivi journalier — Objectif vs Réalisé</p>', unsafe_allow_html=True)
     suivi = charger_suivi()
