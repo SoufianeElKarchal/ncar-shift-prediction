@@ -242,9 +242,10 @@ if not st.session_state['authenticated']:
     st.stop()
 
 # ─────────────────────────────────────────────
-# FICHIER SUIVI JOURNALIER (persistance JSON)
+# FICHIER SUIVI JOURNALIER & YAMAZUMI (persistance JSON)
 # ─────────────────────────────────────────────
 SUIVI_FILE = os.path.join(os.path.dirname(__file__), 'ncar_suivi.json')
+YAMAZUMI_FILE = os.path.join(os.path.dirname(__file__), 'ncar_yamazumi.json')
 
 def charger_suivi():
     if os.path.exists(SUIVI_FILE):
@@ -255,6 +256,16 @@ def charger_suivi():
 def sauvegarder_suivi(data):
     with open(SUIVI_FILE, 'w') as f:
         json.dump(data, f, indent=2)
+
+def charger_yamazumi():
+    if os.path.exists(YAMAZUMI_FILE):
+        with open(YAMAZUMI_FILE) as f:
+            return json.load(f)
+    return {}
+
+def sauvegarder_yamazumi(data):
+    with open(YAMAZUMI_FILE, 'w') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 # ─────────────────────────────────────────────
 # CHARGEMENT MODÈLE
@@ -281,6 +292,66 @@ def preparer_historique():
     return df
 
 df_hist = preparer_historique()
+
+# ─────────────────────────────────────────────
+# DONNÉES DE RÉFÉRENCE YAMAZUMI (W11)
+# ─────────────────────────────────────────────
+YAMAZUMI_POSTES_REF = [
+    {"station": "SPS1",        "ct63": 86.0,  "ct64": 80.0,  "groupe": "SPS"},
+    {"station": "OFF LINE1",   "ct63": 66.0,  "ct64": 70.0,  "groupe": "SPS"},
+    {"station": "SPS2",        "ct63": 65.0,  "ct64": 80.0,  "groupe": "SPS"},
+    {"station": "SPS3",        "ct63": 57.0,  "ct64": 105.0, "groupe": "SPS"},
+    {"station": "OFF LINE2",   "ct63": 50.0,  "ct64": 45.0,  "groupe": "SPS"},
+    {"station": "SPS4",        "ct63": 90.0,  "ct64": 90.0,  "groupe": "SPS"},
+    {"station": "SPS5",        "ct63": 74.0,  "ct64": 80.0,  "groupe": "SPS"},
+    {"station": "SPS6",        "ct63": 15.0,  "ct64": 54.0,  "groupe": "SPS"},
+    {"station": "SPS7",        "ct63": 15.0,  "ct64": 48.0,  "groupe": "SPS"},
+    {"station": "SPS8",        "ct63": 22.0,  "ct64": 54.0,  "groupe": "SPS"},
+    {"station": "LAYOUT 01-1", "ct63": 48.0,  "ct64": 70.0,  "groupe": "LAYOUT"},
+    {"station": "LAYOUT01",    "ct63": 50.0,  "ct64": 65.0,  "groupe": "LAYOUT"},
+    {"station": "LAYOUT02",    "ct63": 50.0,  "ct64": 72.0,  "groupe": "LAYOUT"},
+    {"station": "LAYOUT03",    "ct63": 52.0,  "ct64": 70.0,  "groupe": "LAYOUT"},
+    {"station": "LAYOUT04",    "ct63": 35.0,  "ct64": 66.0,  "groupe": "LAYOUT"},
+    {"station": "LAYOUT05",    "ct63": 41.0,  "ct64": 50.0,  "groupe": "LAYOUT"},
+    {"station": "HUMMER",      "ct63": 45.0,  "ct64": 86.0,  "groupe": "LAYOUT"},
+    {"station": "/PLUG",       "ct63": 150.0, "ct64": 150.0, "groupe": "TAPPING"},
+    {"station": "TAPPING 01",  "ct63": 60.0,  "ct64": 82.0,  "groupe": "TAPPING"},
+    {"station": "TAPPING 02",  "ct63": 59.0,  "ct64": 60.0,  "groupe": "TAPPING"},
+    {"station": "TAPPING 03",  "ct63": 54.0,  "ct64": 71.0,  "groupe": "TAPPING"},
+    {"station": "TAPPING 04",  "ct63": 60.0,  "ct64": 78.0,  "groupe": "TAPPING"},
+    {"station": "CLIP 01",     "ct63": 57.0,  "ct64": 69.0,  "groupe": "CLIP"},
+    {"station": "CLIP 02",     "ct63": 58.0,  "ct64": 53.0,  "groupe": "CLIP"},
+    {"station": "CLIP 03",     "ct63": 56.0,  "ct64": 60.0,  "groupe": "CLIP"},
+    {"station": "CLIP 04",     "ct63": 60.0,  "ct64": 66.0,  "groupe": "CLIP"},
+    {"station": "REMOVE",      "ct63": 105.0, "ct64": 110.0, "groupe": "CLIP"},
+    {"station": "FOAMING 01",  "ct63": 70.0,  "ct64": 80.0,  "groupe": "FOAMING"},
+    {"station": "FOAMING 02",  "ct63": 40.0,  "ct64": 49.0,  "groupe": "FOAMING"},
+    {"station": "FOAMING 03",  "ct63": 55.0,  "ct64": 73.0,  "groupe": "FOAMING"},
+    {"station": "CCB 01",      "ct63": 84.0,  "ct64": 96.0,  "groupe": "CCB"},
+    {"station": "CCB 02",      "ct63": 84.0,  "ct64": 96.0,  "groupe": "CCB"},
+    {"station": "CCB 03",      "ct63": 84.0,  "ct64": 96.0,  "groupe": "CCB"},
+    {"station": "CCB 04",      "ct63": 84.0,  "ct64": 96.0,  "groupe": "CCB"},
+    {"station": "CCB 05",      "ct63": 84.0,  "ct64": 96.0,  "groupe": "CCB"},
+    {"station": "CCB 06",      "ct63": 84.0,  "ct64": 96.0,  "groupe": "CCB"},
+    {"station": "ET 01",       "ct63": 84.0,  "ct64": 96.0,  "groupe": "TEST"},
+    {"station": "TV 02",       "ct63": 0.0,   "ct64": 70.0,  "groupe": "TEST"},
+    {"station": "VI",          "ct63": 118.0, "ct64": 110.0, "groupe": "FINITION"},
+    {"station": "PACK",        "ct63": 125.0, "ct64": 115.0, "groupe": "FINITION"},
+]
+
+GROUPE_COULEURS = {
+    "SPS":      "#4A9BBF",
+    "LAYOUT":   "#2FAE7A",
+    "TAPPING": "#9B59B6",
+    "CLIP":    "#E67E22",
+    "FOAMING": "#16A085",
+    "CCB":      "#D94030",
+    "TEST":    "#E4A82A",
+    "FINITION":"#7F8C8D",
+}
+
+TAKT_TIME_YAM   = 75.4   # secondes
+CYCLE_IDEAL_YAM = 75.6   # secondes
 
 # ─────────────────────────────────────────────
 # HEADER
@@ -332,6 +403,7 @@ tabs = st.tabs([
     "📁 Semaines passées",
     "🔩 Ligne NCAR",
     "📦 WIP",
+    "📊 Yamazumi Interactif",
     "🤖 Modèle ML",
 ])
 
@@ -594,6 +666,8 @@ with tabs[5]:
 
     if suivi_all:
         for sem, jours_data in sorted(suivi_all.items()):
+            if sem.startswith("WIP_") or sem.startswith("YAM_"):
+                continue  # Éviter de lister les données WIP ou Yamazumi ici
             with st.expander(f"📅 {sem}"):
                 rows = []
                 for jour, vals in jours_data.items():
@@ -614,6 +688,8 @@ with tabs[5]:
     if st.button("📥 Exporter tout l'historique Excel"):
         rows_all = []
         for sem, jours_data in sorted(suivi_all.items()):
+            if sem.startswith("WIP_") or sem.startswith("YAM_"):
+                continue
             for jour, vals in jours_data.items():
                 rows_all.append({'Semaine':sem,'Jour':jour,
                                   'Objectif':vals.get('objectif',0),
@@ -625,7 +701,7 @@ with tabs[5]:
 # ONGLET 7 — LIGNE NCAR
 # ══════════════════════════════════════════════
 with tabs[6]:
-    st.markdown('<p class="section-title">Équilibrage de la ligne NCAR — Yamazumi</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-title">Équilibrage de la ligne NCAR — Yamazumi static</p>', unsafe_allow_html=True)
 
     TAKT_TIME   = 75.4  # secondes
     CYCLE_IDEAL = 75.6  # secondes (1.26 min)
@@ -658,7 +734,7 @@ with tabs[6]:
                     '⚠️', ha='center', va='center', fontsize=14)
 
     ax.set_ylabel('Temps de cycle (secondes)', fontsize=11)
-    ax.set_title('Yamazumi Chart — Ligne NCAR\nRouge = postes goulots (TE, TV, CCB)', fontweight='bold', fontsize=12)
+    ax.set_title('Yamazumi Chart static — Ligne NCAR\nRouge = postes goulots (TE, TV, CCB)', fontweight='bold', fontsize=12)
     p1 = mpatches.Patch(color='#2B7FA8', label='Poste normal')
     p2 = mpatches.Patch(color='#D94030', label='Poste goulot (> Takt Time)')
     ax.legend(handles=[p1,p2,
@@ -688,7 +764,7 @@ with tabs[6]:
     if shifts >= 8:
         st.warning(f"⚠️ Avec {shifts} shifts, le poste CCB tourne à pleine capacité. Surveiller les arrêts et la qualité.")
 
-    if st.button("📥 Exporter Yamazumi (PNG)"):
+    if st.button("📥 Exporter Yamazumi static (PNG)"):
         fig3.savefig('NCAR_yamazumi.png', dpi=150, bbox_inches='tight')
         st.success("✅ 'NCAR_yamazumi.png' sauvegardé !")
 
@@ -1324,9 +1400,341 @@ with tabs[7]:
         st.success("✅ 'NCAR_WIP.xlsx' sauvegardé !")
 
 # ══════════════════════════════════════════════
-# ONGLET 9 — MODÈLE ML
+# ONGLET 9 — YAMAZUMI INTERACTIF
 # ══════════════════════════════════════════════
 with tabs[8]:
+
+    st.markdown('<p class="section-title">📊 Yamazumi Chart — Saisie & Analyse des temps de cycle</p>', unsafe_allow_html=True)
+
+    # ── Paramètres globaux ─────────────────────
+    col_p1, col_p2, col_p3 = st.columns(3)
+    with col_p1:
+        sem_yam = st.number_input("Semaine Yamazumi", 1, 52,
+                                   value=semaine_num, key="yam_semaine")
+    with col_p2:
+        takt_yam = st.number_input("Takt Time (s)", 30.0, 300.0,
+                                    value=float(TAKT_TIME_YAM), step=0.5, key="yam_takt")
+    with col_p3:
+        ref_filter = st.selectbox("Référence à afficher",
+                                   ["Moyenne", "Réf. 63", "Réf. 64"],
+                                   key="yam_ref")
+
+    st.markdown("---")
+
+    # ── Chargement données sauvegardées ────────
+    yam_data = charger_yamazumi()
+    yam_key  = f"YAM_S{sem_yam}"
+
+    if yam_key not in yam_data:
+        # Initialiser avec valeurs de référence W11
+        yam_data[yam_key] = {
+            p["station"]: {"ct63": p["ct63"] or 0.0, "ct64": p["ct64"] or 0.0}
+            for p in YAMAZUMI_POSTES_REF
+        }
+
+    saved = yam_data[yam_key]
+
+    # ── Saisie par groupe de postes ─────────────
+    st.markdown('<p class="section-title">✏️ Saisie des temps de cycle par poste (secondes)</p>', unsafe_allow_html=True)
+
+    groupes_uniques = list(dict.fromkeys(p["groupe"] for p in YAMAZUMI_POSTES_REF))
+    ct_values = {}   # station → {ct63, ct64}
+
+    for grp in groupes_uniques:
+        postes_grp = [p for p in YAMAZUMI_POSTES_REF if p["groupe"] == grp]
+        couleur_grp = GROUPE_COULEURS.get(grp, "#888")
+
+        st.markdown(
+            f'<div style="background:{couleur_grp}22;border-left:4px solid {couleur_grp};'
+            f'padding:6px 12px;border-radius:6px;margin-bottom:4px;">'
+            f'<b style="color:{couleur_grp};">{grp}</b></div>',
+            unsafe_allow_html=True
+)
+
+        n_cols = min(len(postes_grp), 5)
+        grp_cols = st.columns(n_cols)
+
+        for i, poste in enumerate(postes_grp):
+            nom = poste["station"]
+            prev63 = float(saved.get(nom, {}).get("ct63") or 0)
+            prev64 = float(saved.get(nom, {}).get("ct64") or 0)
+
+            with grp_cols[i % n_cols]:
+                st.markdown(f"**{nom}**")
+                v63 = st.number_input(f"CT63 (s)", 0.0, 500.0,
+                                      value=prev63, step=1.0,
+                                      key=f"yam_{nom}_63_{sem_yam}",
+                                      label_visibility="visible")
+                v64 = st.number_input(f"CT64 (s)", 0.0, 500.0,
+                                      value=prev64, step=1.0,
+                                      key=f"yam_{nom}_64_{sem_yam}",
+                                      label_visibility="visible")
+                ct_values[nom] = {"ct63": v63, "ct64": v64}
+
+                # Mini alerte inline
+                avg_val = (v63 + v64) / 2 if (v63 + v64) > 0 else 0
+                ref_val = v63 if ref_filter == "Réf. 63" else v64 if ref_filter == "Réf. 64" else avg_val
+                if ref_val > takt_yam:
+                    st.markdown(f"<span style='color:#D94030;font-size:10px;'>⚠️ {ref_val:.0f}s > TT</span>",
+                                unsafe_allow_html=True)
+                elif ref_val > 0:
+                    st.markdown(f"<span style='color:#1A6640;font-size:10px;'>✅ {ref_val:.0f}s</span>",
+                                unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Bouton sauvegarde ──────────────────────
+    col_sv1, col_sv2 = st.columns([1, 4])
+    with col_sv1:
+        if st.button("💾 Sauvegarder Yamazumi", key="save_yam"):
+            yam_data[yam_key] = ct_values
+            sauvegarder_yamazumi(yam_data)
+            st.success(f"✅ Données Yamazumi S{sem_yam} sauvegardées !")
+
+    st.markdown("---")
+
+    # ── Construction du graphique Yamazumi ─────
+    st.markdown('<p class="section-title">📈 Yamazumi Chart — Visualisation</p>', unsafe_allow_html=True)
+
+    # Choisir la valeur à afficher selon le filtre
+    noms_affich, vals_affich, couleurs_affich, groupes_affich = [], [], [], []
+    for poste in YAMAZUMI_POSTES_REF:
+        nom  = poste["station"]
+        grp  = poste["groupe"]
+        v63  = ct_values.get(nom, {}).get("ct63", 0) or 0
+        v64  = ct_values.get(nom, {}).get("ct64", 0) or 0
+        avg  = (v63 + v64) / 2 if (v63 + v64) > 0 else 0
+
+        if ref_filter == "Réf. 63":
+            val = v63
+        elif ref_filter == "Réf. 64":
+            val = v64
+        else:
+            val = avg
+
+        if val > 0:
+            noms_affich.append(nom)
+            vals_affich.append(val)
+            groupes_affich.append(grp)
+            base_col = GROUPE_COULEURS.get(grp, "#888")
+            # Rouge si dépasse takt, sinon couleur groupe
+            couleurs_affich.append("#D94030" if val > takt_yam else base_col)
+
+    if not vals_affich:
+        st.info("Aucun temps de cycle saisi. Remplissez les champs ci-dessus.")
+    else:
+        fig_yam, ax_yam = plt.subplots(figsize=(max(14, len(noms_affich) * 0.45), 7))
+        fig_yam.patch.set_facecolor('#EFF6FA')
+        ax_yam.set_facecolor('#F3F8FB')
+
+        x_pos  = np.arange(len(noms_affich))
+        bars_y = ax_yam.bar(x_pos, vals_affich, color=couleurs_affich,
+                            alpha=0.87, edgecolor='white', lw=1.2, width=0.75)
+
+        # Lignes de référence
+        ax_yam.axhline(y=takt_yam, color='#E89020', ls='--', lw=2.5,
+                       label=f'Takt Time ({takt_yam}s)')
+        ax_yam.axhline(y=CYCLE_IDEAL_YAM, color='#2FAE7A', ls=':', lw=2,
+                       label=f'Cycle idéal ({CYCLE_IDEAL_YAM}s)')
+
+        # Étiquettes valeurs
+        for bar_b, v, nom in zip(bars_y, vals_affich, noms_affich):
+            ax_yam.text(
+                bar_b.get_x() + bar_b.get_width() / 2,
+                bar_b.get_height() + 1.2,
+                f'{v:.0f}s',
+                ha='center', va='bottom', fontsize=7.5, fontweight='bold',
+                color='#D94030' if v > takt_yam else '#1B3A4B'
+            )
+            if v > takt_yam:
+                ax_yam.text(
+                    bar_b.get_x() + bar_b.get_width() / 2,
+                    bar_b.get_height() / 2,
+                    '⚠️', ha='center', va='center', fontsize=11
+                )
+
+        # Axe X — groupes colorés
+        ax_yam.set_xticks(x_pos)
+        ax_yam.set_xticklabels(noms_affich, rotation=45, ha='right', fontsize=8)
+
+        # Colorier chaque label selon son groupe
+        for tick_label, grp in zip(ax_yam.get_xticklabels(), groupes_affich):
+            tick_label.set_color(GROUPE_COULEURS.get(grp, "#333"))
+
+        ax_yam.set_ylabel('Temps de cycle (s)', fontsize=11)
+        ax_yam.set_title(
+            f'Yamazumi Chart — Ligne NCAR | Semaine {sem_yam} | {ref_filter}\n'
+            f'Rouge = postes > Takt Time ({takt_yam}s)',
+            fontweight='bold', fontsize=12
+        )
+        ax_yam.set_ylim(0, max(max(vals_affich) * 1.15, takt_yam * 1.3))
+        ax_yam.grid(axis='y', alpha=0.3)
+
+        # Légende groupes + lignes
+        legend_patches = [
+            mpatches.Patch(color=c, label=g, alpha=0.85)
+            for g, c in GROUPE_COULEURS.items()
+            if g in groupes_affich
+        ]
+        legend_lines = [
+            plt.Line2D([0], [0], color='#E89020', ls='--', lw=2,
+                       label=f'Takt Time ({takt_yam}s)'),
+            plt.Line2D([0], [0], color='#2FAE7A', ls=':', lw=2,
+                       label=f'Cycle idéal ({CYCLE_IDEAL_YAM}s)'),
+            mpatches.Patch(color='#D94030', label='Goulot (> Takt Time)'),
+        ]
+        ax_yam.legend(handles=legend_patches + legend_lines,
+                      fontsize=8, loc='upper right',
+                      ncol=min(len(legend_patches) + 3, 5))
+
+        plt.tight_layout()
+        st.pyplot(fig_yam)
+
+        # Export graphique
+        if st.button("📥 Exporter Yamazumi PNG", key="exp_yam_png"):
+            fig_yam.savefig(f'NCAR_Yamazumi_S{sem_yam}.png', dpi=150, bbox_inches='tight')
+            st.success(f"✅ 'NCAR_Yamazumi_S{sem_yam}.png' sauvegardé !")
+
+    # ── KPIs & Analyse ─────────────────────────
+    st.markdown('<p class="section-title">🔍 Analyse des goulots</p>', unsafe_allow_html=True)
+
+    goulots_yam = []
+    valeurs_non_nulles = []
+    for poste in YAMAZUMI_POSTES_REF:
+        nom = poste["station"]
+        v63 = ct_values.get(nom, {}).get("ct63", 0) or 0
+        v64 = ct_values.get(nom, {}).get("ct64", 0) or 0
+        avg = (v63 + v64) / 2 if (v63 + v64) > 0 else 0
+        ref_val = v63 if ref_filter == "Réf. 63" else v64 if ref_filter == "Réf. 64" else avg
+        if ref_val > 0:
+            valeurs_non_nulles.append(ref_val)
+        if ref_val > takt_yam:
+            goulots_yam.append({"station": nom, "groupe": poste["groupe"],
+                                 "ct": ref_val, "ecart": ref_val - takt_yam})
+
+    # KPI cards
+    c_k1, c_k2, c_k3, c_k4 = st.columns(4)
+    c_k1.markdown(
+        f'<div class="kpi-card"><p class="kpi-label">Postes saisis</p>'
+        f'<p class="kpi-val" style="color:#2B7FA8;">{len(valeurs_non_nulles)}</p>'
+        f'<p class="kpi-sub">/ {len(YAMAZUMI_POSTES_REF)} postes</p></div>',
+        unsafe_allow_html=True
+    )
+    c_k2.markdown(
+        f'<div class="kpi-card"><p class="kpi-label">Goulots détectés</p>'
+        f'<p class="kpi-val" style="color:#D94030;">{len(goulots_yam)}</p>'
+        f'<p class="kpi-sub">CT > {takt_yam}s</p></div>',
+        unsafe_allow_html=True
+    )
+    avg_ct = np.mean(valeurs_non_nulles) if valeurs_non_nulles else 0
+    c_k3.markdown(
+        f'<div class="kpi-card"><p class="kpi-label">CT Moyen ligne</p>'
+        f'<p class="kpi-val" style="color:#1B6690;">{avg_ct:.1f}s</p>'
+        f'<p class="kpi-sub">Takt Time : {takt_yam}s</p></div>',
+        unsafe_allow_html=True
+    )
+    max_ct = max(valeurs_non_nulles) if valeurs_non_nulles else 0
+    max_nom = noms_affich[vals_affich.index(max_ct)] if (valeurs_non_nulles and vals_affich) else "—"
+    c_k4.markdown(
+        f'<div class="kpi-card"><p class="kpi-label">CT Max (goulot principal)</p>'
+        f'<p class="kpi-val" style="color:#E89020;">{max_ct:.0f}s</p>'
+        f'<p class="kpi-sub">{max_nom}</p></div>',
+        unsafe_allow_html=True
+    )
+
+    # Détail goulots
+    if goulots_yam:
+        st.markdown("<br>", unsafe_allow_html=True)
+        for g in sorted(goulots_yam, key=lambda x: -x["ecart"]):
+            col_g = GROUPE_COULEURS.get(g["groupe"], "#888")
+            st.markdown(
+                f'<div class="goulot-card" style="border-color:{col_g};">'
+                f'<b style="color:{col_g};">⚠️ {g["station"]}</b> [{g["groupe"]}] — '
+                f'CT : <b>{g["ct"]:.0f}s</b> | '
+                f'Dépassement Takt Time : <b style="color:#E53935;">+{g["ecart"]:.1f}s</b>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+    else:
+        st.success("✅ Aucun goulot détecté — tous les postes sont sous le Takt Time.")
+
+    # ── Comparaison multi-semaines ──────────────
+    st.markdown('<p class="section-title">📅 Comparaison semaines (CT Moyen ligne)</p>', unsafe_allow_html=True)
+
+    all_yam = charger_yamazumi()
+    semaines_avec_data = sorted([k for k in all_yam.keys() if k.startswith("YAM_S")])
+
+    if len(semaines_avec_data) >= 2:
+        sems_comp, avg_comp, goulots_comp = [], [], []
+        for sem_k in semaines_avec_data:
+            sdata = all_yam[sem_k]
+            vals_s = []
+            nb_goulots_s = 0
+            for poste in YAMAZUMI_POSTES_REF:
+                nom = poste["station"]
+                v63 = sdata.get(nom, {}).get("ct63", 0) or 0
+                v64 = sdata.get(nom, {}).get("ct64", 0) or 0
+                avg_s = (v63 + v64) / 2 if (v63 + v64) > 0 else 0
+                if avg_s > 0:
+                    vals_s.append(avg_s)
+                if avg_s > takt_yam:
+                    nb_goulots_s += 1
+            if vals_s:
+                sems_comp.append(sem_k.replace("YAM_", ""))
+                avg_comp.append(np.mean(vals_s))
+                goulots_comp.append(nb_goulots_s)
+
+        if sems_comp:
+            fig_comp, ax_comp = plt.subplots(figsize=(10, 4))
+            ax_comp.set_facecolor('#F3F8FB')
+            x_c = np.arange(len(sems_comp))
+            ax_comp.plot(x_c, avg_comp, 'o-', color='#2B7FA8', lw=2.5, ms=8, label='CT Moyen ligne (s)')
+            ax_comp.axhline(y=takt_yam, color='#E89020', ls='--', lw=2, label=f'Takt Time ({takt_yam}s)')
+
+            ax_c2 = ax_comp.twinx()
+            ax_c2.bar(x_c, goulots_comp, alpha=0.25, color='#D94030', width=0.4, label='Nb goulots')
+            ax_c2.set_ylabel('Nombre de goulots', color='#D94030')
+
+            ax_comp.set_xticks(x_c)
+            ax_comp.set_xticklabels(sems_comp, fontsize=9)
+            ax_comp.set_ylabel('CT Moyen (s)')
+            ax_comp.set_title('Évolution Yamazumi — Comparaison multi-semaines', fontweight='bold')
+            h1, l1 = ax_comp.get_legend_handles_labels()
+            h2, l2 = ax_c2.get_legend_handles_labels()
+            ax_comp.legend(handles=h1 + h2, labels=l1 + l2, fontsize=9)
+            ax_comp.grid(axis='y', alpha=0.3)
+            plt.tight_layout()
+            st.pyplot(fig_comp)
+    else:
+        st.info("Enregistrez au moins 2 semaines pour afficher la comparaison.")
+
+    # ── Export Excel ────────────────────────────
+    st.markdown('<p class="section-title">📥 Export données Yamazumi</p>', unsafe_allow_html=True)
+    if st.button("📥 Exporter Yamazumi Excel", key="exp_yam_xlsx"):
+        rows_xlsx = []
+        for poste in YAMAZUMI_POSTES_REF:
+            nom = poste["station"]
+            v63 = ct_values.get(nom, {}).get("ct63", 0) or 0
+            v64 = ct_values.get(nom, {}).get("ct64", 0) or 0
+            avg_e = (v63 + v64) / 2 if (v63 + v64) > 0 else 0
+            rows_xlsx.append({
+                "Semaine": f"S{sem_yam}",
+                "Groupe":  poste["groupe"],
+                "Poste":   nom,
+                "CT Réf.63 (s)": v63,
+                "CT Réf.64 (s)": v64,
+                "CT Moyen (s)":  round(avg_e, 2),
+                "Takt Time (s)": takt_yam,
+                "Écart TT (s)":  round(avg_e - takt_yam, 2),
+                "Statut":  "⚠️ Goulot" if avg_e > takt_yam else ("✅ OK" if avg_e > 0 else "—"),
+            })
+        pd.DataFrame(rows_xlsx).to_excel(f'NCAR_Yamazumi_S{sem_yam}.xlsx', index=False)
+        st.success(f"✅ 'NCAR_Yamazumi_S{sem_yam}.xlsx' sauvegardé !")
+
+# ══════════════════════════════════════════════
+# ONGLET 10 — MODÈLE ML
+# ══════════════════════════════════════════════
+with tabs[9]:
     st.markdown('<p class="section-title">Comparaison des modèles</p>', unsafe_allow_html=True)
     rows_m = [{'Modèle':n, 'MAE CV-5':round(r['mae_cv'],3), 'R²':round(r['r2'],3),
                'Statut':'✅ Sélectionné' if n==nom_modele else ''}
@@ -1355,7 +1763,6 @@ with tabs[8]:
         ax4.set_title(f'Importance — {nom_modele}', fontweight='bold')
         ax4.legend(handles=[mpatches.Patch(color='#D94030',label='Capacité/stock/ratio'),
                               mpatches.Patch(color='#2B7FA8',label='Demande')], fontsize=9)
-        ax.set_facecolor('#F3F8FB')
         plt.tight_layout(); st.pyplot(fig4)
 
     st.markdown('<p class="section-title">Paramètres du modèle</p>', unsafe_allow_html=True)
